@@ -1,7 +1,14 @@
-import { Avatar, Box, Flex, Link, MenuButton, Text, VStack } from "@chakra-ui/react"
+import { Avatar, Box, Flex, Link, Menu, MenuButton, MenuList, MenuItem, Text, VStack } from "@chakra-ui/react"
+import { Portal } from "@chakra-ui/react"
 import { BsInstagram } from "react-icons/bs"
 import { CgMoreO } from "react-icons/cg"
 function Userheader() {
+    const copyURL = () => {
+        const currentUrl = window.location.href
+        navigator.clipboard.writeText(currentUrl).then(() => {
+            console.log("Copied to clipboard")
+        })
+    }
     return (
         <VStack gap={4} align={"start"}>
             <Flex justifyContent={"space-between"} w={"full"}>
@@ -35,9 +42,16 @@ function Userheader() {
                         <BsInstagram size={24} cursor={"pointer"}/>
                     </Box>
                     <Box className="icon-container">
-                        <MenuButton>
-                            <CgMoreO size={24} cursor={"pointer"}/>
-                        </MenuButton>
+                        <Menu>
+                            <MenuButton>
+                                <CgMoreO size={24} cursor={"pointer"}/>
+                            </MenuButton>
+                            <Portal>
+                                <MenuList bg={"gray.dark"}>
+                                    <MenuItem bg={"gray.dark"} onClick={copyURL}>Copy Link</MenuItem>
+                                </MenuList>
+                            </Portal>
+                        </Menu>
                     </Box>
                 </Flex>
             </Flex>
