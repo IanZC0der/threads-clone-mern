@@ -1,8 +1,9 @@
+import Userheader from "../components/Userheader"
 
 const UserPage = () => {
-  return (
-    <div>UserPage</div>
-  )
+    return (
+        <Userheader />
+    )
 }
 
 export default UserPage
