@@ -2,11 +2,20 @@ import { Avatar, Box, Flex, Link, Menu, MenuButton, MenuList, MenuItem, Text, VS
 import { Portal } from "@chakra-ui/react"
 import { BsInstagram } from "react-icons/bs"
 import { CgMoreO } from "react-icons/cg"
-function Userheader() {
+import { useToast } from "@chakra-ui/react";
+function UserHeader() {
+    const toast = useToast()
     const copyURL = () => {
         const currentUrl = window.location.href
         navigator.clipboard.writeText(currentUrl).then(() => {
-            console.log("Copied to clipboard")
+            // console.log("URL Copied to clipboard")
+            toast({
+                title: "Success.",
+				status: "success",
+				description: "Profile link copied.",
+				duration: 3000,
+				isClosable: true
+            })
         })
     }
     return (
@@ -55,8 +64,16 @@ function Userheader() {
                     </Box>
                 </Flex>
             </Flex>
+            <Flex w={"full"}>
+                <Flex flex={1} borderBottom={"1.5px solid white"} justifyContent={"center"} pb={3} cursor={"pointer"}>
+                    <Text fontWeight={"bold"}>Threads</Text>
+                </Flex>
+                <Flex flex={1} borderBottom={"1px solid gray"} justifyContent={"center"} pb={3} cursor={"pointer"} color={"gray.light"}>
+                    <Text fontWeight={"bold"}>Replies</Text>
+                </Flex>
+            </Flex>
         </VStack>
     )
 }
 
-export default Userheader
+export default UserHeader
