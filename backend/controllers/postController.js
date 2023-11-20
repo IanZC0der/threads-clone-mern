@@ -172,4 +172,36 @@ const replyToPost = async (req, res) => {
 		res.status(500).json({ error: err.message })
 	}
 }
-export { createPost, getPost, deletePost, likeUnlikePost, replyToPost}
+
+/**
+ * 1. get user id from req.user
+ * 2. find user with the given id
+ * 3. check if user exists
+ * 4. get users current user has followed
+ * 5. get posts of users current user has followed
+ * 6. set response
+ * @param {*} req 
+ * @param {*} res 
+ * @returns 
+ */
+const getPosts = async (req, res) => {
+    try {
+		const userId = req.user._id
+		const user = await User.findById(userId)
+		if (!user) {
+			return res.status(404).json({ error: "User not found" })
+		}
+
+		const following = user.following
+
+        // get posts of users current user has followed
+        // sort by createdAt in descending order
+        // most recent post will be at the top
+		const feedPosts = await Post.find({ postedBy: { $in: following } }).sort({ createdAt: -1 })
+
+		res.status(200).json({feedPosts})
+	} catch (err) {
+		res.status(500).json({ error: err.message })
+	}
+}
+export { createPost, getPost, deletePost, likeUnlikePost, replyToPost, getPosts}
