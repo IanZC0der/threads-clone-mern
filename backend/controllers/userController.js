@@ -1,5 +1,6 @@
 import User from "../models/userModel.js"
 import bcrypt from "bcryptjs"
+import generateTokenAndSetCookie from "../utils/helpers/generateTokenAndSetCookie.js";
 
 const signupUser = async (req, res) => {
     try {
@@ -22,6 +23,7 @@ const signupUser = async (req, res) => {
 		await newUser.save();
 
 		if (newUser) {
+            generateTokenAndSetCookie(newUser._id, res)
 
 			res.status(201).json({
 				_id: newUser._id,
@@ -38,4 +40,99 @@ const signupUser = async (req, res) => {
 	}
 }
 
-export default signupUser
+/**
+ * 1. find one user with the given username
+ * 2. compare the password with the hashed password in the database
+ * 3. check valid
+ * 4. check frozen
+ * 5. generate token and set cookie
+ * 6. set response
+ * @param {*} req : request passed from frontend
+ * @param {*} res : response from the server
+ * @returns 
+ */
+const loginUser = async (req, res) => {
+    try {
+		const { username, password } = req.body;
+		const user = await User.findOne({ username });
+		const isPasswordCorrect = await bcrypt.compare(password, user?.password || "");
+
+		if (!user || !isPasswordCorrect) return res.status(400).json({ error: "Invalid username or password" });
+
+		if (user.isFrozen) {
+			user.isFrozen = false;
+			await user.save();
+		}
+
+		generateTokenAndSetCookie(user._id, res);
+
+		res.status(200).json({
+			_id: user._id,
+			name: user.name,
+			email: user.email,
+			username: user.username,
+		})
+	} catch (error) {
+		res.status(500).json({ error: error.message })
+		console.log("Error in loginUser: ", error.message)
+	}
+}
+
+/**
+ * logout from cookie
+ * @param {*} req request from the frontend
+ * @param {*} res response from the backend
+ */
+const logoutUser = async (req, res) => {
+    try {
+        res.cookie("jwt", "", {
+            maxAge: 1
+        })
+        res.status(200).json({ message: "Logged out successfully" })
+    } catch (error) {
+        res.status(500).json({ error: error.message })
+        console.log("Error in logoutUser: ", error.message)
+    }
+}
+
+/**
+ * controller to follow/unfollow a user
+ * 1. check if the users exist
+ * 2. check if the user is trying to follow/unfollow himself
+ * 3. check if the user is already following the user. unfollow if true
+ * 4. check if the user is not following the user. follow if true
+ * @param {*} req 
+ * @param {*} res 
+ * @returns 
+ */
+const followUnFollowUser = async (req, res) => {
+    try {
+		const { id } = req.params
+		const userToModify = await User.findById(id)
+		const currentUser = await User.findById(req.user._id)
+
+		if (id === req.user._id.toString())
+			return res.status(400).json({ error: "You cannot follow/unfollow yourself" })
+
+		if (!userToModify || !currentUser) return res.status(400).json({ error: "User not found" })
+
+		const isFollowing = currentUser.following.includes(id)
+
+		if (isFollowing) {
+			// Unfollow user
+			await User.findByIdAndUpdate(id, { $pull: { followers: req.user._id } })
+			await User.findByIdAndUpdate(req.user._id, { $pull: { following: id } })
+			res.status(200).json({ message: "User unfollowed successfully" })
+		} else {
+			// Follow user
+			await User.findByIdAndUpdate(id, { $push: { followers: req.user._id } })
+			await User.findByIdAndUpdate(req.user._id, { $push: { following: id } })
+			res.status(200).json({ message: "User followed successfully" })
+		}
+	} catch (err) {
+		res.status(500).json({ error: err.message })
+		console.log("Error in followUnFollowUser: ", err.message)
+	}
+}
+
+export {signupUser, loginUser, logoutUser, followUnFollowUser}
