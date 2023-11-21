@@ -9,6 +9,7 @@ import { useRecoilState, useRecoilValue } from "recoil"
 import userAtom from "../atom/userAtom"
 import postsAtom from "../atom/PostsAtom"
 import {formatDistanceToNow} from "date-fns"
+import Actions from "./Actions"
 
 const Post = ({ post, postedBy }) => {
 	const [user, setUser] = useState(null)
@@ -140,14 +141,8 @@ const Post = ({ post, postedBy }) => {
 							<Image src={post.img} w={"full"} />
 						</Box>
 					)}
-					<Flex gap={2} alignItems={"center"}>
-						<Text color={"gray.light"} fontSize='sm'>
-                            {post.replies.length} replies
-						</Text>
-						<Box w={0.5} h={0.5} borderRadius={"full"} bg={"gray.light"}></Box>
-						<Text color={"gray.light"} fontSize='sm'>
-							{post.likes.length} likes
-						</Text>
+                    <Flex gap={3} my={1}>
+						<Actions post={post} />
 					</Flex>
 
 				</Flex>
