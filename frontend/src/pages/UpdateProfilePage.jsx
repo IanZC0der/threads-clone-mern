@@ -14,6 +14,8 @@ import {
 import { useRef, useState } from 'react'
 import { useRecoilState } from 'recoil'
 import userAtom from '../atom/userAtom'
+import usePreviewImg from '../../hooks/usePreviewImg'
+import useShowToast from '../../hooks/useShowToast'
 
 export default function UpdateProfilePage() {
     const [user, setUser] = useRecoilState(userAtom)
@@ -25,8 +27,35 @@ export default function UpdateProfilePage() {
 		password: "",
     })
     const fileRef = useRef(null)
+    const showToast = useShowToast()
+    const {imgUrl,handleImageChange} = usePreviewImg()
 
+    const handleSubmit = async (e) => {
+        e.preventDefault()
+        try {
+            const res = await fetch(`/api/users/update/${user._id}`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({...inputs, profilePic: imgUrl}),
+            })
+            const data = await res.json()
+
+            if (data.error) {
+                showToast("Error", data.error, "error")
+                return
+            }
+
+            showToast("Success", "Profile updated successfully", "success")
+            setUser(data)
+            localStorage.setItem("user-threads", JSON.stringify(data))
+        } catch (error) {
+            showToast("Error", error, "error")
+        }
+    }
   return (
+    <form onSubmit={handleSubmit}>
     <Flex
       align={'center'}
       justify={'center'}
@@ -47,16 +76,16 @@ export default function UpdateProfilePage() {
         <FormControl id="userName">
           <Stack direction={['column', 'row']} spacing={6}>
             <Center>
-              <Avatar size="xl" boxShadow={"md"} src={user.profilePic} />
+              <Avatar size="xl" boxShadow={"md"} src={imgUrl || user.profilePic} />
             </Center>
             <Center w="full">
               <Button w="full" onClick={() => fileRef.current.click()}>Change Avatar</Button>
-              <Input type='file' hidden ref={fileRef}/>
+              <Input type='file' hidden ref={fileRef} onChange={handleImageChange}/>
             </Center>
 
           </Stack>
         </FormControl>
-        <FormControl  isRequired>
+        <FormControl>
           <FormLabel>Full name</FormLabel>
           <Input
             placeholder="Full name"
@@ -66,7 +95,7 @@ export default function UpdateProfilePage() {
             onChange={(e) => setInputs({...inputs, name: e.target.value})}
           />
         </FormControl>
-        <FormControl  isRequired>
+        <FormControl>
           <FormLabel>User name</FormLabel>
           <Input
             placeholder="Username"
@@ -76,7 +105,7 @@ export default function UpdateProfilePage() {
             onChange={(e) => setInputs({...inputs, username: e.target.value})}
           />
         </FormControl>
-        <FormControl isRequired>
+        <FormControl>
           <FormLabel>Email address</FormLabel>
           <Input
             placeholder="your-email@example.com"
@@ -86,15 +115,17 @@ export default function UpdateProfilePage() {
             onChange={(e) => setInputs({...inputs, email: e.target.value})}
           />
         </FormControl>
-        <FormControl isRequired>
+        <FormControl>
           <FormLabel>Bio</FormLabel>
           <Input
             placeholder="My bio"
             _placeholder={{ color: 'gray.500' }}
-            type="email"
+            type="text"
+            onChange={(e) => setInputs({...inputs, bio: e.target.value})}
+            value={inputs.bio}
           />
         </FormControl>
-        <FormControl isRequired>
+        <FormControl>
           <FormLabel>Password</FormLabel>
           <Input
             placeholder="password"
@@ -120,11 +151,12 @@ export default function UpdateProfilePage() {
             w="full"
             _hover={{
               bg: 'blue.500',
-            }}>
+            }} type='submit'>
             Submit
           </Button>
         </Stack>
       </Stack>
     </Flex>
+    </form>
   )
 }

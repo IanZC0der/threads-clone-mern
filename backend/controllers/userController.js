@@ -1,6 +1,7 @@
 import User from "../models/userModel.js"
 import bcrypt from "bcryptjs"
 import generateTokenAndSetCookie from "../utils/helpers/generateTokenAndSetCookie.js";
+import {v2 as cloudinary} from "cloudinary"
 
 const signupUser = async (req, res) => {
     try {
@@ -169,6 +170,15 @@ const updateUser = async (req, res) => {
 			user.password = hashedPassword
 		}
 
+        if(profilePic) {
+            //destroy the previous profile pic first
+            if (user.profilePic) {
+                await cloudinary.uploader.destroy(user.profilePic.split("/").pop().split(".")[0])
+            }
+            const uploadedResponse = await cloudinary.uploader.upload(profilePic)
+            profilePic = uploadedResponse.secure_url
+        }
+
 
 		user.name = name || user.name
 		user.email = email || user.email
@@ -182,7 +192,7 @@ const updateUser = async (req, res) => {
 		// remove the password in the response
 		user.password = null
 
-		res.status(200).json({ message: "Profiled updated successfully", user })
+		res.status(200).json(user)
 	} catch (err) {
 		res.status(500).json({ error: err.message })
 		console.log("Error in updateUser: ", err.message)
