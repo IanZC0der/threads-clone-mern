@@ -199,7 +199,7 @@ const getPosts = async (req, res) => {
         // most recent post will be at the top
 		const feedPosts = await Post.find({ postedBy: { $in: following } }).sort({ createdAt: -1 })
 
-		res.status(200).json({feedPosts})
+		res.status(200).json(feedPosts)
 	} catch (err) {
 		res.status(500).json({ error: err.message })
 	}

@@ -1,10 +1,20 @@
-import { Avatar, Box, Flex, Link, Menu, MenuButton, MenuList, MenuItem, Text, VStack } from "@chakra-ui/react"
+import { Avatar, Box, Flex, Link, Menu, MenuButton, MenuList, MenuItem, Text, VStack, Button } from "@chakra-ui/react"
 import { Portal } from "@chakra-ui/react"
 import { BsInstagram } from "react-icons/bs"
 import { CgMoreO } from "react-icons/cg"
-import { useToast } from "@chakra-ui/react";
+import { useToast } from "@chakra-ui/react"
+import { useRecoilValue } from "recoil"
+import userAtom from "../atom/userAtom"
+import { Link as RouterLink } from "react-router-dom"
+import { useState } from "react"
+import useShowToast from "../../hooks/useShowToast"
 function UserHeader({user}) {
     const toast = useToast()
+    const currentUser = useRecoilValue(userAtom)
+    const [following, setFollowing] = useState(user.followers.includes(currentUser?._id))
+    const [updating, setUpdating] = useState(false)
+    console.log(following)
+    const showToast = useShowToast()
     const copyURL = () => {
         const currentUrl = window.location.href
         navigator.clipboard.writeText(currentUrl).then(() => {
@@ -17,6 +27,42 @@ function UserHeader({user}) {
 				isClosable: true
             })
         })
+    }
+
+    const handleFollowUnfollow = async () => {
+        if(!currentUser) {
+            showToast("Error", "Please login to follow", "error")
+            return
+        }
+        if(updating) return
+        setUpdating(true)
+        try {
+            const res = await fetch(`/api/users/follow/${user._id}`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                // body: JSON.stringify({userId: currentUser._id}),
+            })
+            const data = await res.json()
+            if (data.error) {
+                showToast("Error", data.error, "error")
+                return
+            }
+            if(following) {
+                showToast("Success", `Unfollowed ${user.name} successfully`, "success")
+                user.followers.pop()
+            } else{
+                showToast("Success", `Followed ${user.name} successfully`, "success")
+                user.followers.push(currentUser._id)
+            }
+            setFollowing(!following)
+            console.log(data)
+        } catch (error) {
+            showToast("Error", error, "error")
+        } finally {
+            setUpdating(false)
+        }
     }
     return (
         <VStack gap={4} align={"start"}>
@@ -45,6 +91,22 @@ function UserHeader({user}) {
                 </Box>
             </Flex>
             <Text>{user.bio}</Text>
+
+            {
+                currentUser?._id === user._id && (
+                    <Link as={RouterLink} to={"/update"} color={"gray.light"}>
+                        <Button colorScheme={"blue"} size={"sm"}>Edit Profile</Button>
+                    </Link>
+                )
+            }
+            {
+                currentUser?._id !== user._id && (
+                    <Button size={"sm"} onClick={handleFollowUnfollow} isLoading={updating}>{
+                        following ? "Unfollow" : "Follow"
+                    
+                    }</Button>
+                )
+            }
             <Flex justifyContent={"space-between"} w={"full"}>
                 <Flex gap={2} alignItems={"center"}>
                     <Text color={"gray.light"}>{user.followers.length} followers</Text>
