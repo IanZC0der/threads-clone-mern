@@ -4,6 +4,6 @@
         "install:backend": "npm instal --prefix backend",
         "build:frontend": "npm run build --prefix frontend",
         "build": "npm run install:backend && npm run install:frontend && npm run build:frontend",
-        "server": "nodemon backend/server.js"
+        "server": "node backend/server.js"
     }
 }
