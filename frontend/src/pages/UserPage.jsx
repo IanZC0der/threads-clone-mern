@@ -1,4 +1,5 @@
-import UserHeader from "../components/Userheader"
+import UserHeader from "../components/UserHeader"
+
 import { useState, useEffect } from "react"
 import { useParams } from "react-router-dom"
 import useShowToast from "../../hooks/useShowToast"
