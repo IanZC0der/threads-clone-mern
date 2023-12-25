@@ -3,6 +3,7 @@ import { useColorModeValue } from "@chakra-ui/react"
 import { Avatar, Text, Image } from "@chakra-ui/react"
 import { Skeleton, SkeletonCircle } from "@chakra-ui/react"
 import Message from "./Message"
+import MessageInput from "./MessageInput"
 
 const MessageContainer = () => {
   return (
@@ -49,6 +50,7 @@ const MessageContainer = () => {
             <Message ownMessage={false} />
 
         </Flex>
+        <MessageInput />
     </Flex>
   )
 }
