@@ -11,11 +11,14 @@ import userAtom from './atom/userAtom'
 // import LogoutButton from './components/LogoutButton'
 import UpdateProfilePage from './pages/UpdateProfilePage'
 import CreatePost from './components/CreatePost'
+import ChatPage from './pages/ChatPage'
+import { Box } from '@chakra-ui/react'
 function App() {
   const user = useRecoilValue(userAtom)
   console.log(user)
 
   return (
+    <Box position={"relative"} w="full">
     <Container maxW="620px">
       <Header />
       <Routes>
@@ -31,6 +34,7 @@ function App() {
           <UserPage />
         )}/>
         <Route path="/:username/post/:pid" element={<PostPage />}/>
+        <Route path="/chat" element={user ? <ChatPage /> : <Navigate to={"/auth"}/>}/>
 
       </Routes>
 
@@ -38,6 +42,7 @@ function App() {
       {/* {user && <CreatePost />} */}
       
     </Container>
+    </Box>
   )
 }
 
