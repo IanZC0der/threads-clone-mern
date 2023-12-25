@@ -5,6 +5,7 @@ import { SearchIcon } from "@chakra-ui/icons"
 import { Skeleton, SkeletonCircle } from "@chakra-ui/react"
 import Conversation from "../components/Conversation"
 import { GiConversation } from "react-icons/gi"
+import MessageContainer from "../components/MessageContainer"
 
 const ChatPage = () => {
   return (
@@ -51,7 +52,7 @@ const ChatPage = () => {
                 <Conversation />
                 <Conversation />
             </Flex>
-            <Flex
+            {/* <Flex
                 flex={70}
                 flexDirection={"column"}
                 borderRadius={"md"}
@@ -65,8 +66,9 @@ const ChatPage = () => {
                     Select a conversation to start chatting
                 </Text>
 
-            </Flex>
+            </Flex> */}
             {/* <Flex flex={70}>msg</Flex> */}
+            <MessageContainer />
         </Flex>
     </Box>
   )
