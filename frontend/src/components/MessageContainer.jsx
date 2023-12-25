@@ -2,6 +2,7 @@ import { Divider, Flex } from "@chakra-ui/react"
 import { useColorModeValue } from "@chakra-ui/react"
 import { Avatar, Text, Image } from "@chakra-ui/react"
 import { Skeleton, SkeletonCircle } from "@chakra-ui/react"
+import Message from "./Message"
 
 const MessageContainer = () => {
   return (
@@ -22,7 +23,7 @@ const MessageContainer = () => {
             flexDir={"column"}
             gap={4} my={4} p={2} height={"400px"} overflowY={"scroll"}
         >
-            {true &&
+            {false &&
                 [...Array(5)].map((_, i) => (
                     <Flex
                         key={i}
@@ -42,6 +43,10 @@ const MessageContainer = () => {
                 </Flex>
                 ))
             }
+            <Message ownMessage={true} />
+            <Message ownMessage={false} />
+            <Message ownMessage={true} />
+            <Message ownMessage={false} />
 
         </Flex>
     </Flex>
