@@ -4,6 +4,8 @@ import userAtom from "../atom/userAtom"
 import { AiFillHome } from "react-icons/ai"
 import { RxAvatar } from "react-icons/rx"
 import { Link as RouterLink } from "react-router-dom"
+import { Button } from "@chakra-ui/react"
+import { FiLogOut } from "react-icons/fi"
 
 
 const Header = () => {
@@ -28,6 +30,9 @@ const Header = () => {
 					<Link as={RouterLink} to={`/${user.username}`}>
 						<RxAvatar size={24} />
 					</Link>
+                    <Button size={"sm"} >
+                    <FiLogOut size={20} />
+                    </Button>
 				</Flex>
 			)}
         </Flex>)

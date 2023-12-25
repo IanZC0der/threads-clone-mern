@@ -17,14 +17,18 @@ import { DeleteIcon } from "@chakra-ui/icons"
 import userAtom from "../atom/userAtom"
 import { useRecoilValue } from "recoil"
 import useGetUserProfile from "../../hooks/useGetUserProfile"
-import { useState } from "react"
+// import { useState } from "react"
+import { useRecoilState } from "recoil"
+import postsAtom from "../atom/PostsAtom"
 const PostPage = () => {
     const { user, loading } = useGetUserProfile()
-    const [post, setPost] = useState(null)
+    // const [post, setPost] = useState(null)
+	const [posts, setPosts] = useRecoilState(postsAtom)
     const { pid } = useParams()
     const showToast = useShowToast()
     const navigate = useNavigate()
     const currentUser = useRecoilValue(userAtom)
+	const currentPost = posts[0]
 
 
     useEffect(() => {
@@ -36,19 +40,19 @@ const PostPage = () => {
 					showToast("Error", data.error, "error")
 					return
 				}
-                setPost(data)
+                setPosts([data])
 			} catch (error) {
 				showToast("Error", error.message, "error")
 			}
 		}
 		getPost()
-    }, [showToast, pid])
+    }, [showToast, pid, setPosts])
 
     const handleDeletePost = async () => {
 		try {
 			if (!window.confirm("Are you sure you want to delete this post?")) return
 
-			const res = await fetch(`/api/posts/${post._id}`, {
+			const res = await fetch(`/api/posts/${currentPost._id}`, {
 				method: "DELETE",
 			})
 			const data = await res.json()
@@ -71,8 +75,8 @@ const PostPage = () => {
 		)
 	}
 
-	if (!post) return null
-	console.log("currentPost", post)
+	if (!currentPost) return null
+	console.log("currentPost", currentPost)
     return (
         <>
         <Flex>
@@ -87,7 +91,7 @@ const PostPage = () => {
             </Flex>
             <Flex gap={4} justifyContent={"center"}>
                     <Text fontSize={"xs"} width={36} textAlign={"right"} color={"gray.light"}>
-                        {formatDistanceToNow(new Date(post.createdAt))} ago
+                        {formatDistanceToNow(new Date(currentPost.createdAt))} ago
 					</Text>
                     
                     {currentUser?._id === user._id && (
@@ -95,14 +99,14 @@ const PostPage = () => {
 					)}
             </Flex>
         </Flex>
-        <Text my={3}>{post.text}</Text>
-        {post.img && (
+        <Text my={3}>{currentPost.text}</Text>
+        {currentPost.img && (
 				<Box borderRadius={6} overflow={"hidden"} border={"1px solid"} borderColor={"gray.light"}>
-					<Image src={post.img} w={"full"} />
+					<Image src={currentPost.img} w={"full"} />
 				</Box>
 		)}
         <Flex gap={3} my={3}>
-				<Actions post={post}/>
+				<Actions post={currentPost}/>
 		</Flex>
         <Divider my={4} />
         <Flex justifyContent={"space-between"}>
@@ -113,11 +117,11 @@ const PostPage = () => {
 				<Button>Get</Button>
 		</Flex>
         <Divider my={4} />
-        {post.replies && post.replies.map((reply) => (
+        {currentPost.replies && currentPost.replies.map((reply) => (
 				<Comment
 					key={reply._id}
 					reply={reply}
-					lastReply={reply._id === post.replies[post.replies.length - 1]._id}
+					lastReply={reply._id === currentPost.replies[currentPost.replies.length - 1]._id}
 				/>
 		))}
         </>

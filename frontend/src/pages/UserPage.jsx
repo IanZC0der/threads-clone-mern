@@ -6,18 +6,21 @@ import useShowToast from "../../hooks/useShowToast"
 import { Flex, Spinner } from "@chakra-ui/react"
 import Post from "../components/Post"
 import useGetUserProfile from "../../hooks/useGetUserProfile"
+import { useRecoilState } from "recoil"
+import postsAtom from "../atom/PostsAtom"
 const UserPage = () => {
     const showToast = useShowToast()
 
     const { username } = useParams()
     const { user, loading } = useGetUserProfile()
-    const [posts, setPosts] = useState([])
+    const [posts, setPosts] = useRecoilState(postsAtom)
 	const [fetchingPosts, setFetchingPosts] = useState(true);
 
     useEffect(() => {
 
 
         const getPosts = async () => {
+			if(!user) return
 			setFetchingPosts(true)
 			try {
 				const res = await fetch(`/api/posts/user/${username}`)
@@ -33,7 +36,7 @@ const UserPage = () => {
 		}
 
         getPosts()
-    }, [username, showToast])
+    }, [username, showToast, setPosts, user])
     if(!user && loading) return (
         <Flex justifyContent={"center"}>
             <Spinner size={"xl"} />
