@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs"
 import generateTokenAndSetCookie from "../utils/helpers/generateTokenAndSetCookie.js";
 import {v2 as cloudinary} from "cloudinary"
 import mongoose from "mongoose"
+import Post from "../models/postModel.js"
 
 const signupUser = async (req, res) => {
     try {
@@ -188,6 +189,10 @@ const updateUser = async (req, res) => {
 		user.bio = bio || user.bio
 
 		user = await user.save()
+
+		await Post.updateMany({ "replies.userId": userId }
+			, { $set: { "replies.$[reply].username": user.username, "replies.$[reply].userProfilePic": user.profilePic } },
+			{ arrayFilters: [{ "reply.userId": userId }]})
 
 
 		// remove the password in the response
