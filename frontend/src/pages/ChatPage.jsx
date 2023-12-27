@@ -10,11 +10,12 @@ import { useEffect } from "react"
 import useShowToast from "../../hooks/useShowToast"
 import { useState } from "react"
 import { useRecoilState } from "recoil"
-import { conversationsAtom } from "../atom/messagesAtom"
+import { conversationsAtom, selectedConversationAtom } from "../atom/messagesAtom"
 const ChatPage = () => {
     const showToast = useShowToast()
     const [loadingConversations, setLoadingConversations] = useState(true)
     const [conversations, setConversations] = useRecoilState(conversationsAtom)
+    const [selectedConversation, setSelectedConversation] = useRecoilState(selectedConversationAtom)
     useEffect(() => {
         const getConversations = async () => {
             try {
@@ -80,7 +81,8 @@ const ChatPage = () => {
                     ))
                 }
             </Flex>
-            {/* <Flex
+            {!selectedConversation._id &&
+            (<Flex
                 flex={70}
                 flexDirection={"column"}
                 borderRadius={"md"}
@@ -94,9 +96,9 @@ const ChatPage = () => {
                     Select a conversation to start chatting
                 </Text>
 
-            </Flex> */}
+            </Flex>)}
             {/* <Flex flex={70}>msg</Flex> */}
-            <MessageContainer />
+            {selectedConversation._id && <MessageContainer />}
         </Flex>
     </Box>
   )
