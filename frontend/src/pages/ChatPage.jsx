@@ -11,11 +11,17 @@ import useShowToast from "../../hooks/useShowToast"
 import { useState } from "react"
 import { useRecoilState } from "recoil"
 import { conversationsAtom, selectedConversationAtom } from "../atom/messagesAtom"
+import { useRecoilValue } from "recoil"
+import userAtom from "../atom/userAtom"
 const ChatPage = () => {
     const showToast = useShowToast()
     const [loadingConversations, setLoadingConversations] = useState(true)
     const [conversations, setConversations] = useRecoilState(conversationsAtom)
     const [selectedConversation, setSelectedConversation] = useRecoilState(selectedConversationAtom)
+
+    const [searchText, setSearchText] = useState("")
+    const [searching, setSearching] = useState(false)
+    const currentUser = useRecoilValue(userAtom)
     useEffect(() => {
         const getConversations = async () => {
             try {
@@ -35,6 +41,59 @@ const ChatPage = () => {
         }
         getConversations()
     }, [showToast, setConversations])
+
+    const handleSearchConversation = async (e) => {
+        e.preventDefault()
+        setSearching(true)
+        try {
+            const res = await fetch(`/api/users/profile/${searchText}`)
+            const data = await res.json()
+            if (data.error) {
+                showToast("Error", data.error, "error")
+                return
+            }
+
+            const isSearchingForSelf = data._id === currentUser._id
+            if (isSearchingForSelf) {
+                showToast("Error", "You cannot message yourself", "error")
+                return
+            }
+
+            const conversationExists = conversations.find((c) => c.participants[0]._id === data._id)
+            if (conversationExists) {
+                setSelectedConversation({
+                    _id: conversationExists._id,
+                    userId: data._id,
+                    username: data.username,
+                    userProfilePic: data.profilePic,
+                })
+                return
+            }
+            const mockConversation = {
+                mock: true,
+                lastMessage:
+                {
+                    text: "",
+                    sender: ""
+                },
+                _id: Date.now(),
+                participants: [
+                    {
+                        _id: data._id,
+                        username: data.username,
+                        profilePic: data.profilePic,
+                    }
+                ]
+
+            }
+            setConversations((conversations) => [...conversations, mockConversation])
+            
+        } catch (error) {
+            showToast("Error", error.message, "error")
+        } finally {
+            setSearching(false)
+        }
+    }
   return (
     <Box position={"absolute"} left={"50%"} w={{
         lg: "750px",
@@ -54,9 +113,9 @@ const ChatPage = () => {
 					Conversations
 				</Text>
                 <form>
-                    <Flex alignItems={"center"} gap={2}>
-                        <Input placeholder={"Search user"} />
-                        <Button size={"sm"}>
+                    <Flex alignItems={"center"} gap={2} onSubmit={handleSearchConversation}>
+                        <Input placeholder={"Search user"} onChange={(e) => setSearchText(e.target.value)}/>
+                        <Button size={"sm"} onClick={handleSearchConversation} isLoading={searching}>
                             <SearchIcon />
                         </Button>
                     </Flex>
