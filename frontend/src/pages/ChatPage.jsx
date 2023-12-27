@@ -9,10 +9,12 @@ import MessageContainer from "../components/MessageContainer"
 import { useEffect } from "react"
 import useShowToast from "../../hooks/useShowToast"
 import { useState } from "react"
-
+import { useRecoilState } from "recoil"
+import { conversationsAtom } from "../atom/messagesAtom"
 const ChatPage = () => {
     const showToast = useShowToast()
     const [loadingConversations, setLoadingConversations] = useState(true)
+    const [conversations, setConversations] = useRecoilState(conversationsAtom)
     useEffect(() => {
         const getConversations = async () => {
             try {
@@ -23,6 +25,7 @@ const ChatPage = () => {
                     return
                 }
                 console.log(data)
+                setConversations(data)
             } catch (error) {
                 showToast("Error", error.message, "error")
             } finally {
@@ -30,7 +33,7 @@ const ChatPage = () => {
             }
         }
         getConversations()
-    }, [showToast])
+    }, [showToast, setConversations])
   return (
     <Box position={"absolute"} left={"50%"} w={{
         lg: "750px",
@@ -72,9 +75,9 @@ const ChatPage = () => {
                 
                 }
                 {!loadingConversations &&
-                <Conversation />
-                // <Conversation />
-                // <Conversation />
+                    conversations.map((conversation) => (
+                        <Conversation key={conversation._id} conversation={conversation} />
+                    ))
                 }
             </Flex>
             {/* <Flex
