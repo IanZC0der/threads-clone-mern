@@ -6,8 +6,31 @@ import { Skeleton, SkeletonCircle } from "@chakra-ui/react"
 import Conversation from "../components/Conversation"
 import { GiConversation } from "react-icons/gi"
 import MessageContainer from "../components/MessageContainer"
+import { useEffect } from "react"
+import useShowToast from "../../hooks/useShowToast"
+import { useState } from "react"
 
 const ChatPage = () => {
+    const showToast = useShowToast()
+    const [loadingConversations, setLoadingConversations] = useState(true)
+    useEffect(() => {
+        const getConversations = async () => {
+            try {
+                const res = await fetch("/api/messages/conversations")
+                const data = await res.json()
+                if (data.error) {
+                    showToast("Error", data.error, "error")
+                    return
+                }
+                console.log(data)
+            } catch (error) {
+                showToast("Error", error.message, "error")
+            } finally {
+                setLoadingConversations(false)
+            }
+        }
+        getConversations()
+    }, [showToast])
   return (
     <Box position={"absolute"} left={"50%"} w={{
         lg: "750px",
@@ -34,7 +57,7 @@ const ChatPage = () => {
                         </Button>
                     </Flex>
                 </form>
-                {false && 
+                {loadingConversations && 
                     [0, 1, 2, 3, 4].map((_, i) => (
                         <Flex key={i} gap={4} alignItems={"center"} p={"1"} borderRadius={"md"}>
                             <Box>
@@ -48,9 +71,11 @@ const ChatPage = () => {
                     ))
                 
                 }
+                {!loadingConversations &&
                 <Conversation />
-                <Conversation />
-                <Conversation />
+                // <Conversation />
+                // <Conversation />
+                }
             </Flex>
             {/* <Flex
                 flex={70}
