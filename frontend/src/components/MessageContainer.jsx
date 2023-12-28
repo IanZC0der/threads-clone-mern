@@ -6,18 +6,45 @@ import Message from "./Message"
 import MessageInput from "./MessageInput"
 import { useEffect } from "react"
 import useShowToast from "../../hooks/useShowToast"
-import { useRecoilState } from "recoil"
-import {selectedConversationAtom} from "../atom/messagesAtom"
+import { useRecoilState, useSetRecoilState } from "recoil"
+import {conversationsAtom, selectedConversationAtom} from "../atom/messagesAtom"
 import { useState } from "react"
 import { useRecoilValue } from "recoil"
 import userAtom from "../atom/userAtom"
-
+import {useSocket} from "../context/SocketContext"
+import { useRef } from "react"
 const MessageContainer = () => {
     const showToast = useShowToast()
     const [selectedConversation, setSelectedConversation] = useRecoilState(selectedConversationAtom)
     const [loadingMessages, setLoadingMessages] = useState(true)
     const [messages, setMessages] = useState([])
     const currentUser = useRecoilValue(userAtom)
+    const {socket} = useSocket()
+    const setConversations = useSetRecoilState(conversationsAtom)
+    const messageEndRef = useRef(null)
+
+    useEffect(() => {
+        socket.on("newMessage", (message) => {
+            if(selectedConversation._id === message.conversationId) {
+                setMessages((prevMessages) => [...prevMessages, message])
+
+            }
+            setConversations((conversations) => {
+                const updatedConversations = conversations.map((c) => {
+                    if (c._id === message.conversationId) {
+                        return { ...c, lastMessage: {
+                            text: message.text,
+                            sender: message.sender,
+                        
+                        } }
+                    }
+                    return c
+                })
+                return updatedConversations
+            })
+        })
+        return () => socket.off("newMessage")
+    }, [socket])
     useEffect(() => {
         const getMessages = async () => {
             setLoadingMessages(true)
@@ -40,6 +67,10 @@ const MessageContainer = () => {
         getMessages()
 
     }, [showToast, selectedConversation.userId])
+
+    useEffect(() => {
+        messageEndRef.current?.scrollIntoView({ behavior: "smooth" })
+    }, [messages])
   return (
     <Flex flex="70"
     flexDirection={"column"}
@@ -80,7 +111,12 @@ const MessageContainer = () => {
             }
             {
                 !loadingMessages && messages.map((message) => (
-                    <Message key={message._id} message={message} ownMessage={currentUser._id === message.sender}/>
+                    <Flex key={message._id} 
+                        direction={"column"}
+                        ref = {messages.length - 1 === messages.indexOf(message) ? messageEndRef : null}
+                    >
+                    <Message message={message} ownMessage={currentUser._id === message.sender}/>
+                    </Flex>
                 ))
             }
             {/* <Message ownMessage={true} />
