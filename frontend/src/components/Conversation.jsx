@@ -4,6 +4,7 @@ import userAtom from "../atom/userAtom"
 import { useRecoilState, useRecoilValue } from "recoil"
 import { BsCheck2All } from "react-icons/bs"
 import { selectedConversationAtom } from "../atom/messagesAtom"
+import { Box } from "@chakra-ui/react"
 
 const Conversation = ({conversation, isOnline}) => {
     const user = conversation.participants[0]
@@ -42,7 +43,11 @@ const Conversation = ({conversation, isOnline}) => {
                 {user.username} <Image src='/verified.png' w={4} h={4} ml={1} />
             </Text>
             <Text fontSize={"xs"} display={"flex"} alignItems={"center"} gap={1}>
-                {currentUser._id === lastMessage.sender? <BsCheck2All size={16}/> : ""}
+                {currentUser._id === lastMessage.sender? (
+                    <Box color={lastMessage.seen ? "blue.400" : ""}>
+                        <BsCheck2All size={16} />
+                    </Box>
+                ) : ""}
                 {lastMessage.text.length > 4 ? lastMessage.text.slice(0, 4) + "..." : lastMessage.text}</Text>
         </Stack>
     </Flex>

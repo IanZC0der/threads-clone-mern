@@ -6,7 +6,7 @@ import Message from "./Message"
 import MessageInput from "./MessageInput"
 import { useEffect } from "react"
 import useShowToast from "../../hooks/useShowToast"
-import { useRecoilState, useSetRecoilState } from "recoil"
+import { useSetRecoilState } from "recoil"
 import {conversationsAtom, selectedConversationAtom} from "../atom/messagesAtom"
 import { useState } from "react"
 import { useRecoilValue } from "recoil"
@@ -15,7 +15,7 @@ import {useSocket} from "../context/SocketContext"
 import { useRef } from "react"
 const MessageContainer = () => {
     const showToast = useShowToast()
-    const [selectedConversation, setSelectedConversation] = useRecoilState(selectedConversationAtom)
+    const selectedConversation = useRecoilValue(selectedConversationAtom)
     const [loadingMessages, setLoadingMessages] = useState(true)
     const [messages, setMessages] = useState([])
     const currentUser = useRecoilValue(userAtom)
@@ -44,7 +44,29 @@ const MessageContainer = () => {
             })
         })
         return () => socket.off("newMessage")
-    }, [socket])
+    }, [socket, selectedConversation, setConversations])
+    useEffect(() => {
+        const lastMessageIsFromOtherUser = messages.length && messages[messages.length - 1].sender !== currentUser._id
+        if(lastMessageIsFromOtherUser) {
+            socket.emit("messageRead", {
+                conversationId: selectedConversation._id,
+                userId: selectedConversation.userId
+            })
+        }
+        socket.on("messageSeen", ({conversationId}) => {
+            if(conversationId === selectedConversation._id) {
+                setMessages((prevMessages) => {
+                    const updatedMessages = prevMessages.map((m) => {
+                        if(!m.seen) {
+                            return {...m, seen: true}
+                        }
+                        return m
+                    })
+                    return updatedMessages
+                })}
+        })
+    }, [socket, messages, currentUser._id, selectedConversation])
+
     useEffect(() => {
         const getMessages = async () => {
             setLoadingMessages(true)
@@ -66,7 +88,7 @@ const MessageContainer = () => {
         }
         getMessages()
 
-    }, [showToast, selectedConversation.userId])
+    }, [showToast, selectedConversation.userId, selectedConversation.mock])
 
     useEffect(() => {
         messageEndRef.current?.scrollIntoView({ behavior: "smooth" })
