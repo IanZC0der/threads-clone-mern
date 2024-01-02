@@ -1,4 +1,4 @@
-import { Flex, Input, InputGroup, InputRightElement } from "@chakra-ui/react"
+import { Flex, Input, InputGroup, InputRightElement, Spinner } from "@chakra-ui/react"
 import { IoSendSharp } from "react-icons/io5"
 import useShowToast from "../../hooks/useShowToast"
 import { useRecoilValue } from "recoil"
@@ -26,9 +26,12 @@ const MessageInput = ({setMessages}) => {
     const imageRef = useRef(null)
     const {onClose} = useDisclosure()
     const {handleImageChange, imgUrl, setImgUrl} = usePreviewImg()
+    const [sending, setSending] = useState(false)
     const handleSubmitMessage = async (e) => {
         e.preventDefault()
-        if(!messageText) return
+        if(!messageText && !imgUrl) return
+        if(sending) return
+        setSending(true)
         try {
             const res = await fetch("/api/messages", {
                 method: "POST",
@@ -38,6 +41,7 @@ const MessageInput = ({setMessages}) => {
                 body: JSON.stringify({
                     message: messageText,
                     recipientId: selectedConversation.userId,
+                    img: imgUrl,
                 }),
             })
             const data = await res.json()
@@ -60,9 +64,12 @@ const MessageInput = ({setMessages}) => {
                 return updatedConversations
             })
             setMessageText("")
+            setImgUrl("")
 
         } catch (error) {
             showToast("Error", error.message, "error")
+        } finally {
+            setSending(false)
         }
     }
   return (
@@ -95,7 +102,11 @@ const MessageInput = ({setMessages}) => {
 							<Image src={imgUrl} />
 						</Flex>
 						<Flex justifyContent={"flex-end"} my={2}>
-							<IoSendSharp size={24} cursor={"pointer"} />
+                            {!sending ? (
+                                <IoSendSharp size={24} cursor={"pointer"} onClick={handleSubmitMessage} />
+                            ):(
+                                <Spinner size={"md"} />
+                            )}
 						</Flex>
 					</ModalBody>
 				</ModalContent>
